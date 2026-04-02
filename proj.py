@@ -12,22 +12,21 @@ from datetime import date
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
-import streamlit as st
 
 st.set_page_config(page_title="DR Detection", layout="centered")
 
 st.markdown("""
 <style>
 
-/* Hide Share, Star, Edit buttons */
+/* ❌ Hide Share, Star, Edit (pencil) */
 button[title="Share"] {display: none !important;}
 button[title="Star"] {display: none !important;}
 button[title="Edit"] {display: none !important;}
 
-/* Hide GitHub icon */
+/* ❌ Hide GitHub icon */
 a[href*="github"] {display: none !important;}
 
-/* Ensure 3-dot menu is visible */
+/* ✅ KEEP 3-dot menu */
 button[title="Main menu"] {
     display: block !important;
 }
