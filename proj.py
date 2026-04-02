@@ -37,10 +37,11 @@ Diabetic retinopathy is a medical condition where chronic high blood sugar level
 Over time, these vessels can swell, leak fluid, or close off entirely, sometimes triggering the growth of abnormal new vessels that further interfere with vision.
 
 Effects:
-1. Blurred Vision (The Macula)
-Where it happens: At the very center of your retina, in a tiny area called the macula.
+1.Blurred Vision (The Macula)
 
-How it happens: High blood sugar causes blood vessels to leak fluid or protein into the macula, making it swell (a condition called Macular Edema). Since the macula is responsible for sharp, straight-ahead vision, the world starts to look like you're looking through a dense fog or a smudged window.
+ Where it happens: At the very center of your retina, in a tiny area called the macula.
+
+ How it happens: High blood sugar causes blood vessels to leak fluid or protein into the macula, making it swell (a condition called Macular Edema). Since the macula is responsible for sharp, straight-ahead vision, the world starts to look like you're looking through a dense fog or a smudged window.
 
 2. Floaters (The Vitreous)
 Where it happens: In the vitreous humor, which is the clear, jelly-like substance filling the middle of your eye.
