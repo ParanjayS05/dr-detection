@@ -24,7 +24,7 @@ button[title*="Fork"] {display: none !important;}
 # -----------------------------
 # TITLE
 # -----------------------------
-st.title("👁️ Diabetic Retinopathy Detection System")
+st.title(" Diabetic Retinopathy Detection System")
 
 # -----------------------------
 # ABOUT SECTION
