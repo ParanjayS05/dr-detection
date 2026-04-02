@@ -13,10 +13,24 @@ from datetime import date
 # PAGE CONFIG
 # -----------------------------
 st.set_page_config(page_title="DR Detection", layout="centered")
+
 st.markdown("""
 <style>
+
+/* Hide entire header (optional – if you want full control) */
+/* header {visibility: hidden;} */
+
+/* Hide Share, Star, Edit, GitHub icons */
+button[title="Share"] {display: none !important;}
+button[title="Star"] {display: none !important;}
+button[title="Edit"] {display: none !important;}
 a[href*="github"] {display: none !important;}
-button[title*="Fork"] {display: none !important;}
+
+/* IMPORTANT: Keep the 3-dot menu */
+button[title="Main menu"] {
+    display: block !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
