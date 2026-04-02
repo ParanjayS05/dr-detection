@@ -13,16 +13,23 @@ from datetime import date
 # PAGE CONFIG
 # -----------------------------
 st.set_page_config(page_title="DR Detection", layout="centered")
+st.markdown("""
+<style>
+header {visibility: hidden;}
+a[href*="github"] {display: none !important;}
+button[title*="Fork"] {display: none !important;}
+</style>
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # TITLE
 # -----------------------------
-st.title("👁️ Diabetic Retinopathy Detection System")
+st.title(" Diabetic Retinopathy Detection System")
 
 # -----------------------------
 # ABOUT SECTION
 # -----------------------------
-st.sidebar.title("🧠 About")
+st.sidebar.title("About")
 
 st.sidebar.write("""
 Diabetic retinopathy is a medical condition where chronic high blood sugar levels damage the delicate blood vessels in the retina.
