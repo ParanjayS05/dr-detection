@@ -16,26 +16,11 @@ from datetime import date
 st.set_page_config(page_title="DR Detection", layout="centered")
 
 st.markdown("""
-<style>
-
-/* Target toolbar container */
-div[data-testid="stToolbar"] {
-    display: flex !important;
-    justify-content: flex-end;
-}
-
-/* Hide ALL buttons inside toolbar */
-div[data-testid="stToolbar"] > * {
-    display: none !important;
-}
-
-/* Show ONLY the last button (3-dot menu) */
-div[data-testid="stToolbar"] > *:last-child {
-    display: block !important;
-}
-
+<style> header {visibility: hidden;} 
+a[href*="github"] {display: none !important;} 
+button[title*="Fork"] {display: none !important;} 
 </style>
-""", unsafe_allow_html=True)
+""",unsafe_allow_html=True)
 
 # -----------------------------
 # TITLE
