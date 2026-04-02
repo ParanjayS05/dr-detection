@@ -33,13 +33,28 @@ st.title(" Diabetic Retinopathy Detection System")
 st.sidebar.title("About")
 
 st.sidebar.write("""
-Diabetic retinopathy is a medical condition where chronic high blood sugar levels damage the delicate blood vessels in the retina.
+Diabetic retinopathy is a medical condition where chronic high blood sugar levels damage the delicate blood vessels in the retina, the light-sensitive tissue at the back of the eye. 
+Over time, these vessels can swell, leak fluid, or close off entirely, sometimes triggering the growth of abnormal new vessels that further interfere with vision.
 
 Effects:
-1) Vitreous Hemorrhage  
-2) Macular Edema  
-3) Retinal Detachment  
-4) Glaucoma  
+1. Blurred Vision (The Macula)
+Where it happens: At the very center of your retina, in a tiny area called the macula.
+
+How it happens: High blood sugar causes blood vessels to leak fluid or protein into the macula, making it swell (a condition called Macular Edema). Since the macula is responsible for sharp, straight-ahead vision, the world starts to look like you're looking through a dense fog or a smudged window.
+
+2. Floaters (The Vitreous)
+Where it happens: In the vitreous humor, which is the clear, jelly-like substance filling the middle of your eye.
+
+How it happens: In advanced stages, fragile new blood vessels grow and then break, leaking blood into this "jelly." This creates dark spots, cobweb-like strings, or red streaks that "float" across your field of vision.
+
+3. Blindness (Retinal Damage & Detachment)
+Where it happens: Across the entire retinal surface and the optic nerve.
+
+How it happens: * Total Blockage: Severe bleeding can completely fill the eye, blocking all light from reaching the retina.
+
+Retinal Detachment: Scar tissue from the damaged vessels can pull the retina away from the back of the eye, causing permanent vision loss if not treated immediately.
+
+Glaucoma: New vessels can block fluid drainage, causing high pressure that destroys the optic nerve (the "cable" that sends images to your brain).
 
 Early detection is very important.
 """)
