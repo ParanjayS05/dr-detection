@@ -18,13 +18,19 @@ st.set_page_config(page_title="DR Detection", layout="centered")
 st.markdown("""
 <style>
 
-/* Hide all header buttons EXCEPT the last one (3 dots) */
-header div[data-testid="stToolbar"] > div:not(:last-child) {
+/* Target toolbar container */
+div[data-testid="stToolbar"] {
+    display: flex !important;
+    justify-content: flex-end;
+}
+
+/* Hide ALL buttons inside toolbar */
+div[data-testid="stToolbar"] > * {
     display: none !important;
 }
 
-/* Ensure 3-dot menu stays */
-header div[data-testid="stToolbar"] > div:last-child {
+/* Show ONLY the last button (3-dot menu) */
+div[data-testid="stToolbar"] > *:last-child {
     display: block !important;
 }
 
