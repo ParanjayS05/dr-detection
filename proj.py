@@ -18,16 +18,13 @@ st.set_page_config(page_title="DR Detection", layout="centered")
 st.markdown("""
 <style>
 
-/* ❌ Hide Share, Star, Edit (pencil) */
-button[title="Share"] {display: none !important;}
-button[title="Star"] {display: none !important;}
-button[title="Edit"] {display: none !important;}
+/* Hide all header buttons EXCEPT the last one (3 dots) */
+header div[data-testid="stToolbar"] > div:not(:last-child) {
+    display: none !important;
+}
 
-/* ❌ Hide GitHub icon */
-a[href*="github"] {display: none !important;}
-
-/* ✅ KEEP 3-dot menu */
-button[title="Main menu"] {
+/* Ensure 3-dot menu stays */
+header div[data-testid="stToolbar"] > div:last-child {
     display: block !important;
 }
 
