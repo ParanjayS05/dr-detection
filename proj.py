@@ -5,165 +5,169 @@ import gdown
 import os
 from PIL import Image
 import torchvision.transforms as transforms
-import pyrebase
+import google.generativeai as genai
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import date
+import time
 
 # -----------------------------
-# 🔐 HIDE STREAMLIT MENU
+# PAGE CONFIG
 # -----------------------------
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="DR Detection", layout="centered")
 
 # -----------------------------
-# 🔥 FIREBASE CONFIG (PUT YOUR KEYS)
+# GEMINI API
 # -----------------------------
-firebase_config = {
-    "apiKey": "YOUR_API_KEY",
-    "authDomain": "YOUR_DOMAIN",
-    "projectId": "YOUR_PROJECT_ID",
-    "storageBucket": "YOUR_BUCKET",
-    "messagingSenderId": "XXX",
-    "appId": "XXX",
-    "databaseURL": ""
-}
-
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+model_gemini = genai.GenerativeModel("gemini-1.5-flash")
 
 # -----------------------------
-# SESSION
+# TITLE
 # -----------------------------
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-# -----------------------------
-# 🔐 LOGIN SYSTEM
-# -----------------------------
-if not st.session_state.user:
-    st.title("🔐 Login System")
-
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    col1, col2 = st.columns(2)
-
-    if col1.button("Login"):
-        try:
-            user = auth.sign_in_with_email_and_password(email, password)
-            st.session_state.user = user
-            st.success("Login successful ✅")
-            st.rerun()
-        except:
-            st.error("Invalid credentials ❌")
-
-    if col2.button("Signup"):
-        try:
-            auth.create_user_with_email_and_password(email, password)
-            st.success("Account created ✅")
-        except:
-            st.error("Signup failed ❌")
-
-    st.stop()   # ⛔ block app if not logged in
+st.title("👁️ Diabetic Retinopathy Detection System")
 
 # -----------------------------
-# ROLE DETECTION
+# ABOUT SECTION
 # -----------------------------
-user_email = st.session_state.user["email"]
+st.sidebar.title("🧠 About")
 
-if user_email == "your_admin_email@gmail.com":
-    role = "Admin"
-else:
-    role = "Patient"
+st.sidebar.write("""
+Diabetic Retinopathy is a serious eye condition caused by diabetes.
 
-st.sidebar.success(f"Logged in as: {role}")
+It damages the retina and can lead to:
+- Blurred vision
+- Vision loss
+- Blindness if untreated
 
-if st.sidebar.button("Logout"):
-    st.session_state.user = None
-    st.rerun()
-
-# -----------------------------
-# ADMIN DASHBOARD
-# -----------------------------
-if role == "Admin":
-    st.title("👨‍⚕️ Admin Dashboard")
-
-    st.write("✔ Monitor system")
-    st.write("✔ View usage")
-    st.write("✔ Manage users")
+Early detection is very important.
+""")
 
 # -----------------------------
-# PATIENT PORTAL (MODEL)
+# PATIENT DETAILS
 # -----------------------------
-else:
-    st.set_page_config(page_title="DR Detection", layout="centered")
+st.subheader("👤 Patient Details")
 
-    st.title("👁️ Diabetic Retinopathy Detection")
-    st.markdown("### AI-powered retinal analysis")
+name = st.text_input("Full Name")
+dob = st.date_input("Date of Birth")
+
+blood_group = st.selectbox(
+    "Blood Group",
+    ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+)
+
+# -----------------------------
+# AGE CALCULATION
+# -----------------------------
+def calculate_age(dob):
+    today = date.today()
+    years = today.year - dob.year
+    days = (today - dob).days
+    return years, days
+
+age_years, age_days = calculate_age(dob)
+st.write(f"Age: {age_years} years ({age_days} days)")
+
+# -----------------------------
+# MODEL LOAD
+# -----------------------------
+MODEL_PATH = "model.pth"
+MODEL_URL = "https://drive.google.com/uc?id=1yDdDELohhVrnI_SSRAQAbqkruoV0fBpw"
+
+if not os.path.exists(MODEL_PATH):
+    st.info("Downloading model...")
+    gdown.download(MODEL_URL, MODEL_PATH)
+    st.success("Model ready")
+
+@st.cache_resource
+def load_model():
+    model = timm.create_model('convnext_base', pretrained=False, num_classes=5)
+    model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=False))
+    model.eval()
+    return model
+
+model = load_model()
+
+labels = ["No DR", "Mild", "Moderate", "Severe", "Proliferative DR"]
+
+# -----------------------------
+# IMAGE UPLOAD
+# -----------------------------
+file = st.file_uploader("Upload Retina Image", type=["jpg", "png", "jpeg"])
+
+if file and name:
+    img = Image.open(file).convert("RGB")
+    st.image(img, caption="Uploaded Image")
+
+    image_path = "uploaded.jpg"
+    img.save(image_path)
+
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
+
+    input_tensor = transform(img).unsqueeze(0)
+
+    with torch.no_grad():
+        output = model(input_tensor)
+        probs = torch.softmax(output, dim=1)
+        pred = torch.argmax(probs, dim=1).item()
+
+    st.success(f"Prediction: {labels[pred]}")
 
     # -----------------------------
-    # MODEL CONFIG
+    # PDF GENERATION
     # -----------------------------
-    MODEL_PATH = "model.pth"
-    MODEL_URL = "https://drive.google.com/uc?id=1yDdDELohhVrnI_SSRAQAbqkruoV0fBpw"
+    def generate_pdf():
+        doc = SimpleDocTemplate("report.pdf")
+        styles = getSampleStyleSheet()
 
-    labels = ["No DR", "Mild", "Moderate", "Severe", "Proliferative DR"]
+        content = []
 
-    # -----------------------------
-    # DOWNLOAD MODEL
-    # -----------------------------
-    if not os.path.exists(MODEL_PATH):
-        st.info("Downloading model... ⏳")
-        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
-        st.success("Model downloaded ✅")
+        content.append(Paragraph("Diabetic Retinopathy Report", styles["Title"]))
+        content.append(Spacer(1, 10))
 
-    # -----------------------------
-    # LOAD MODEL
-    # -----------------------------
-    @st.cache_resource
-    def load_model():
-        model = timm.create_model('convnext_base', pretrained=False, num_classes=5)
-        state_dict = torch.load(MODEL_PATH, map_location="cpu", weights_only=False)
-        model.load_state_dict(state_dict)
-        model.eval()
-        return model
+        content.append(Paragraph(f"Name: {name}", styles["Normal"]))
+        content.append(Paragraph(f"DOB: {dob}", styles["Normal"]))
+        content.append(Paragraph(f"Age: {age_years} years", styles["Normal"]))
+        content.append(Paragraph(f"Blood Group: {blood_group}", styles["Normal"]))
+        content.append(Spacer(1, 10))
 
-    model = load_model()
+        content.append(Paragraph(f"Prediction: {labels[pred]}", styles["Heading2"]))
+        content.append(Paragraph("Advice: Consult an ophthalmologist.", styles["Normal"]))
 
-    # -----------------------------
-    # UI
-    # -----------------------------
-    st.sidebar.title("About")
-    st.sidebar.write("Upload retinal image to detect DR severity")
+        content.append(Spacer(1, 10))
+        content.append(RLImage(image_path, width=200, height=200))
 
-    file = st.file_uploader("Upload Retina Image", type=["jpg", "png", "jpeg"])
+        doc.build(content)
+        return "report.pdf"
 
-    if file:
-        try:
-            img = Image.open(file).convert("RGB")
-            st.image(img, caption="Uploaded Image", use_column_width=True)
+    pdf = generate_pdf()
 
-            transform = transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.ToTensor()
-            ])
+    with open(pdf, "rb") as f:
+        st.download_button("📄 Download Report", f)
 
-            input_tensor = transform(img).unsqueeze(0)
+# -----------------------------
+# NETRA CHATBOT
+# -----------------------------
+st.sidebar.title("🤖 Netra AI")
 
-            with torch.no_grad():
-                output = model(input_tensor)
-                probs = torch.softmax(output, dim=1)
-                pred = torch.argmax(probs, dim=1).item()
+if "last_query_time" not in st.session_state:
+    st.session_state.last_query_time = 0
 
-            st.success(f"Prediction: {labels[pred]}")
+query = st.sidebar.text_input("Ask about eye health")
 
-            st.subheader("Confidence Scores")
-            for i, p in enumerate(probs[0]):
-                st.write(f"{labels[i]}: {p.item()*100:.2f}%")
+def netra_ai(q):
+    prompt = f"You are Netra, an eye specialist AI. Answer clearly: {q}"
+    response = model_gemini.generate_content(prompt)
+    return response.text
 
-        except Exception as e:
-            st.error("Error processing image")
-            st.text(str(e))
+if st.sidebar.button("Ask Netra"):
+    if time.time() - st.session_state.last_query_time > 5:
+        st.session_state.last_query_time = time.time()
+        st.sidebar.write(netra_ai(query))
+    else:
+        st.sidebar.warning("Wait a few seconds")
+
+st.sidebar.warning("⚠️ This AI is for guidance only. Consult a doctor.")
