@@ -18,9 +18,9 @@ st.markdown("""
 <style>
 
 /* Hide entire header (optional – if you want full control) */
-/* header {visibility: hidden;} */
+header {visibility: hidden;} 
 
-/* Hide Share, Star, Edit, GitHub icons */
+/*Hide Share, Star, Edit, GitHub icons */
 button[title="Share"] {display: none !important;}
 button[title="Star"] {display: none !important;}
 button[title="Edit"] {display: none !important;}
