@@ -17,6 +17,41 @@ import time
 st.set_page_config(page_title="DR Detection", layout="centered")
 
 # -----------------------------
+# CUSTOM CHAT UI CSS
+# -----------------------------
+st.markdown("""
+<style>
+.chat-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 10px;
+}
+.chat-bubble {
+    background-color: #262730;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 80%;
+}
+.user-bubble {
+    background-color: #4CAF50;
+    color: white;
+    margin-left: auto;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
 # GEMINI API
 # -----------------------------
 genai.configure(api_key="YOUR_GEMINI_API_KEY")
@@ -28,19 +63,19 @@ model_gemini = genai.GenerativeModel("gemini-1.5-flash")
 st.title("👁️ Diabetic Retinopathy Detection System")
 
 # -----------------------------
-# ABOUT SECTION
+# ABOUT
 # -----------------------------
 st.sidebar.title("🧠 About")
-
 st.sidebar.write("""
-Diabetic Retinopathy is a serious eye condition caused by diabetes.
+Diabetic Retinopathy damages the retina due to diabetes.
 
-It damages the retina and can lead to:
+Effects:
 - Blurred vision
+- Floaters
 - Vision loss
-- Blindness if untreated
+- Blindness (if untreated)
 
-Early detection is very important.
+Early detection is critical.
 """)
 
 # -----------------------------
@@ -49,7 +84,12 @@ Early detection is very important.
 st.subheader("👤 Patient Details")
 
 name = st.text_input("Full Name")
-dob = st.date_input("Date of Birth")
+
+dob = st.date_input(
+    "Date of Birth",
+    min_value=date(1900, 1, 1),
+    max_value=date.today()
+)
 
 blood_group = st.selectbox(
     "Blood Group",
@@ -57,7 +97,7 @@ blood_group = st.selectbox(
 )
 
 # -----------------------------
-# AGE CALCULATION
+# AGE
 # -----------------------------
 def calculate_age(dob):
     today = date.today()
@@ -69,7 +109,7 @@ age_years, age_days = calculate_age(dob)
 st.write(f"Age: {age_years} years ({age_days} days)")
 
 # -----------------------------
-# MODEL LOAD
+# MODEL
 # -----------------------------
 MODEL_PATH = "model.pth"
 MODEL_URL = "https://drive.google.com/uc?id=1yDdDELohhVrnI_SSRAQAbqkruoV0fBpw"
@@ -77,7 +117,6 @@ MODEL_URL = "https://drive.google.com/uc?id=1yDdDELohhVrnI_SSRAQAbqkruoV0fBpw"
 if not os.path.exists(MODEL_PATH):
     st.info("Downloading model...")
     gdown.download(MODEL_URL, MODEL_PATH)
-    st.success("Model ready")
 
 @st.cache_resource
 def load_model():
@@ -97,7 +136,7 @@ file = st.file_uploader("Upload Retina Image", type=["jpg", "png", "jpeg"])
 
 if file and name:
     img = Image.open(file).convert("RGB")
-    st.image(img, caption="Uploaded Image")
+    st.image(img)
 
     image_path = "uploaded.jpg"
     img.save(image_path)
@@ -117,14 +156,13 @@ if file and name:
     st.success(f"Prediction: {labels[pred]}")
 
     # -----------------------------
-    # PDF GENERATION
+    # PDF
     # -----------------------------
     def generate_pdf():
         doc = SimpleDocTemplate("report.pdf")
         styles = getSampleStyleSheet()
 
         content = []
-
         content.append(Paragraph("Diabetic Retinopathy Report", styles["Title"]))
         content.append(Spacer(1, 10))
 
@@ -132,10 +170,10 @@ if file and name:
         content.append(Paragraph(f"DOB: {dob}", styles["Normal"]))
         content.append(Paragraph(f"Age: {age_years} years", styles["Normal"]))
         content.append(Paragraph(f"Blood Group: {blood_group}", styles["Normal"]))
-        content.append(Spacer(1, 10))
 
+        content.append(Spacer(1, 10))
         content.append(Paragraph(f"Prediction: {labels[pred]}", styles["Heading2"]))
-        content.append(Paragraph("Advice: Consult an ophthalmologist.", styles["Normal"]))
+        content.append(Paragraph("Advice: Consult doctor", styles["Normal"]))
 
         content.append(Spacer(1, 10))
         content.append(RLImage(image_path, width=200, height=200))
@@ -146,28 +184,53 @@ if file and name:
     pdf = generate_pdf()
 
     with open(pdf, "rb") as f:
-        st.download_button("📄 Download Report", f)
+        st.download_button("📄 Download Report", f, file_name="DR_Report.pdf")
 
 # -----------------------------
-# NETRA CHATBOT
+# CHATBOT
 # -----------------------------
-st.sidebar.title("🤖 Netra AI")
+st.subheader("💬 Chat with Netra")
 
-if "last_query_time" not in st.session_state:
-    st.session_state.last_query_time = 0
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-query = st.sidebar.text_input("Ask about eye health")
+user_query = st.text_input("Ask about eye health")
 
 def netra_ai(q):
     prompt = f"You are Netra, an eye specialist AI. Answer clearly: {q}"
     response = model_gemini.generate_content(prompt)
     return response.text
 
-if st.sidebar.button("Ask Netra"):
-    if time.time() - st.session_state.last_query_time > 5:
-        st.session_state.last_query_time = time.time()
-        st.sidebar.write(netra_ai(query))
-    else:
-        st.sidebar.warning("Wait a few seconds")
+if "last_query_time" not in st.session_state:
+    st.session_state.last_query_time = 0
 
-st.sidebar.warning("⚠️ This AI is for guidance only. Consult a doctor.")
+if st.button("Ask Netra"):
+    if user_query:
+        if time.time() - st.session_state.last_query_time > 5:
+            st.session_state.last_query_time = time.time()
+
+            st.session_state.chat_history.append(("user", user_query))
+            reply = netra_ai(user_query)
+            st.session_state.chat_history.append(("bot", reply))
+        else:
+            st.warning("Wait a few seconds")
+
+# -----------------------------
+# DISPLAY CHAT
+# -----------------------------
+for role, message in st.session_state.chat_history:
+    if role == "user":
+        st.markdown(f"""
+        <div class="chat-container" style="justify-content:flex-end;">
+            <div class="chat-bubble user-bubble">{message}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div class="chat-container">
+            <div class="chat-avatar">👁️</div>
+            <div class="chat-bubble">{message}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+st.warning("⚠️ AI is for guidance only. Consult doctor.")
